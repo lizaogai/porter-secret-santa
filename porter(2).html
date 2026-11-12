@@ -1,0 +1,1828 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Тайний Санта • PORTER 🎅🎄</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <style>
+    /* Основний шрифт та святковий смарагдово-золотий фон */
+    body {
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(circle at top, #0f513f 0%, #072e24 50%, #031913 100%);
+      min-height: 100vh;
+      color: #1f2937;
+      overflow-x: hidden;
+    }
+
+    /* Анімація падаючих сніжинок */
+    .snowflake {
+      position: fixed;
+      top: -10%;
+      color: rgba(255, 255, 255, 0.72);
+      user-select: none;
+      pointer-events: none;
+      z-index: 1;
+      animation-name: snowfall;
+      animation-timing-function: linear;
+      animation-iteration-count: infinite;
+    }
+
+    @keyframes snowfall {
+      0% {
+        transform: translateY(0vh) translateX(0px) rotate(0deg);
+        opacity: 0;
+      }
+      12% {
+        opacity: 0.85;
+      }
+      88% {
+        opacity: 0.85;
+      }
+      100% {
+        transform: translateY(112vh) translateX(24px) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
+    /* Анімація появи карток */
+    @keyframes fadeSlideUp {
+      from {
+        opacity: 0;
+        transform: translateY(14px) scale(0.985);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .animate-card-enter {
+      animation: fadeSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Анімація тремтіння при помилці */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-7px); }
+      40%, 80% { transform: translateX(7px); }
+    }
+
+    .animate-shake {
+      animation: shake 0.35s ease-in-out;
+    }
+
+    /* Золоте сяйво картки подарунка */
+    .gold-glow {
+      box-shadow: 0 14px 42px -8px rgba(245, 158, 11, 0.42), 0 0 0 2px rgba(251, 191, 36, 0.55);
+    }
+
+    /* Кастомний скролбар */
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: #f3f4f6;
+      border-radius: 9999px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="antialiased selection:bg-amber-200 selection:text-emerald-950">
+
+  <!-- Декоративний сніг -->
+  <div id="snow-container" aria-hidden="true"></div>
+
+  <!-- Canvas для святкового конфетті -->
+  <canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-50"></canvas>
+
+  <!-- Спливаючі сповіщення (заміна alert) -->
+  <div id="toast-container" class="fixed top-4 right-4 left-4 sm:left-auto sm:w-96 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Головний контейнер -->
+  <div class="relative z-10 max-w-4xl mx-auto px-4 py-6 sm:py-10 flex flex-col min-h-screen">
+
+    <!-- Святкова шапка сайту -->
+    <header class="text-center mb-6 sm:mb-8">
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-400/20 border border-amber-300/35 text-amber-200 text-xs sm:text-sm font-semibold tracking-wide mb-3 shadow-sm">
+        <span>❄️ Перший день зими • Новорічна гра ❄️</span>
+      </div>
+      <h1 class="text-3xl sm:text-5xl font-black text-white tracking-tight drop-shadow-md">
+        ТАЙНИЙ САНТА • <span class="text-amber-400">PORTER</span> 🎅🎄
+      </h1>
+      <p class="mt-2.5 text-emerald-100/90 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
+        Привіт, Портерята! Час діставати новорічний настрій, загадувати бажання та дарувати одне одному трішки магії 🎁✨
+      </p>
+    </header>
+
+    <!-- Блок: Графік та правила гри (згортається/розгортається) -->
+    <section class="mb-6 bg-[#fffdf9]/95 backdrop-blur-md rounded-2xl shadow-xl border border-amber-200/70 overflow-hidden">
+      <button
+        id="toggle-rules-btn"
+        type="button"
+        class="w-full px-5 py-4 flex items-center justify-between text-left bg-gradient-to-r from-amber-50 to-emerald-50/75 hover:from-amber-100/75 hover:to-emerald-50 transition-colors cursor-pointer"
+      >
+        <div class="flex items-center gap-2.5">
+          <span class="text-xl">📅</span>
+          <div>
+            <h2 class="font-bold text-emerald-950 text-sm sm:text-base">Графік та правила гри</h2>
+            <p class="text-xs text-emerald-700/85 hidden sm:block">Важливі дати, бюджет 200–500 грн та інструкція для ельфійки Світлани</p>
+          </div>
+        </div>
+        <span id="rules-chevron" class="text-emerald-800 font-bold text-xs sm:text-sm px-2.5 py-1 rounded-lg bg-white/90 border border-emerald-200">
+          Згорнути ▲
+        </span>
+      </button>
+
+      <div id="rules-content" class="px-5 py-4 border-t border-amber-100 text-sm text-gray-700">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Важливі дати -->
+          <div class="bg-emerald-50/85 rounded-xl p-4 border border-emerald-200/80">
+            <h3 class="font-bold text-emerald-950 flex items-center gap-1.5 mb-2.5">
+              <span>🗓️</span> Важливі дати:
+            </h3>
+            <ul class="space-y-2 text-xs sm:text-sm text-emerald-950">
+              <li class="flex items-start gap-2">
+                <span>🎄</span>
+                <span><strong>1–2 грудня</strong> — вводимо персональний код та дізнаємося свого отримувача.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span>🎁</span>
+                <span><strong>3–13 грудня</strong> — обираємо, купуємо та гарно пакуємо подарунок.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span>📦</span>
+                <span><strong>14–21 грудня</strong> — відправляємо на склад разом із закусками до чарівниці-ельфа Світлани 🧝‍♀️</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span>✨</span>
+                <span><strong>22–31 грудня</strong> — отримуємо свої сюрпризи та радіємо!</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Важливі правила -->
+          <div class="bg-red-50/75 rounded-xl p-4 border border-red-200/80">
+            <h3 class="font-bold text-red-950 flex items-center gap-1.5 mb-2.5">
+              <span>❗️</span> Важливі правила:
+            </h3>
+            <ul class="space-y-2 text-xs sm:text-sm text-red-950">
+              <li class="flex items-start gap-2">
+                <span>1️⃣</span>
+                <span><strong>Бюджет подарунка — від 200 до 500 грн.</strong> Обираємо з душею та увагою ❤️</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span>2️⃣</span>
+                <span><strong>Обов'язково підписуємо пакунок:</strong> <code class="bg-white px-1.5 py-0.5 rounded border border-red-200 font-semibold">№ магазину + Прізвище та Ім'я</code> (для менеджерів — Ім'я та По батькові).</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span>3️⃣</span>
+                <span><strong>Ніяких розголошень! 🤫</strong> Ваш код — індивідуальний, вхід можливий лише один раз.</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ОСНОВНА ОБЛАСТЬ ДОДАТКУ -->
+    <main id="app-root" class="flex-1 flex flex-col">
+
+      <!-- ЕКРАН 0: Завантаження -->
+      <div id="view-loading" class="bg-[#fffdf9]/95 backdrop-blur-md rounded-3xl p-8 sm:p-12 shadow-2xl border border-white/40 text-center my-auto animate-card-enter">
+        <div class="inline-block text-5xl mb-4 animate-bounce">🎅</div>
+        <h2 class="text-xl font-bold text-emerald-950">Завантажуємо чарівний мішок Санти...</h2>
+        <p class="text-sm text-gray-500 mt-1">Перевіряємо безпечне з'єднання та ваш статус</p>
+      </div>
+
+      <!-- ЕКРАН 1: Введення персонального секретного коду (повна конфіденційність, без списку імен) -->
+      <div id="view-code-entry" class="hidden bg-[#fffdf9]/95 backdrop-blur-md rounded-3xl p-6 sm:p-10 shadow-2xl border-2 border-amber-300/60 my-auto animate-card-enter">
+        <div class="max-w-lg mx-auto text-center">
+          <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-100 text-emerald-900 text-xs font-extrabold uppercase tracking-wider mb-4">
+            <span>🔐 Конфіденційний доступ • 100% таємниця</span>
+          </div>
+
+          <h2 class="text-2xl sm:text-3xl font-black text-emerald-950 tracking-tight">
+            Дізнайтеся, кому ви готуєте новорічний сюрприз! 🎄
+          </h2>
+          <p class="text-sm sm:text-base text-gray-600 mt-2.5 leading-relaxed">
+            Для повної таємності список учасників приховано. Введіть <strong>ваш персональний код</strong>, який ви отримали особисто від організатора.
+          </p>
+
+          <!-- Форма введення персонального коду -->
+          <form id="secret-code-form" class="mt-7 space-y-4 text-left">
+            <div>
+              <label for="secret-code-input" class="block text-sm font-extrabold text-emerald-950 mb-2 text-center sm:text-left">
+                Введіть ваш персональний код:
+              </label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-4 flex items-center text-xl pointer-events-none">🔑</span>
+                <input
+                  id="secret-code-input"
+                  type="text"
+                  autocomplete="off"
+                  autocapitalize="characters"
+                  spellcheck="false"
+                  placeholder="Наприклад: PRT-1024"
+                  class="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-emerald-200 bg-white text-center sm:text-left text-xl sm:text-2xl font-black tracking-widest uppercase text-emerald-950 placeholder:text-gray-300 placeholder:font-semibold placeholder:tracking-normal focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-400/20 transition-all"
+                />
+              </div>
+            </div>
+
+            <!-- Блок помилки валідації коду -->
+            <div
+              id="code-error-box"
+              class="hidden p-4 rounded-2xl bg-red-50 border-2 border-red-300 text-red-900 text-xs sm:text-sm font-bold leading-relaxed animate-shake"
+            >
+              —
+            </div>
+
+            <button
+              id="submit-code-btn"
+              type="submit"
+              class="w-full py-4 px-6 rounded-2xl font-extrabold text-base sm:text-lg text-white bg-gradient-to-r from-red-700 via-red-600 to-amber-600 hover:from-red-800 hover:to-amber-700 shadow-lg hover:shadow-xl transition-all transform active:scale-[0.99] flex items-center justify-center gap-2.5 cursor-pointer"
+            >
+              <span>🎁 Дізнатися мого отримувача</span>
+            </button>
+          </form>
+
+          <!-- Важливе попередження про одноразову активацію -->
+          <div class="mt-6 p-3.5 rounded-2xl bg-amber-50/90 border border-amber-200/90 text-xs text-amber-950 flex items-start gap-2.5 text-left">
+            <span class="text-base mt-0.5">🔒</span>
+            <span>
+              <strong>Зверніть увагу:</strong> кожен персональний код можна активувати лише <strong>1 раз</strong>. Після активації ваш отримувач зафіксується на цьому пристрої, а поле вводу закриється.
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ЕКРАН 2: ЗАБЛОКОВАНИЙ ОТРИМУВАЧ (показується одразу після вводу коду та при ВСІХ повторних заходах) -->
+      <div id="view-locked" class="hidden bg-[#fffdf9]/95 backdrop-blur-md rounded-3xl p-5 sm:p-8 shadow-2xl border-2 border-amber-300 animate-card-enter">
+        <!-- Верхня плашка блокування -->
+        <div class="flex flex-wrap items-center justify-between gap-2 bg-emerald-950 text-white px-4 py-3 rounded-2xl mb-6 shadow-md">
+          <div class="flex items-center gap-2 text-xs sm:text-sm font-extrabold text-amber-300">
+            <span>🔒 Ваш вибір зафіксовано</span>
+          </div>
+          <span id="locked-meta-info" class="text-[11px] sm:text-xs text-emerald-200 font-medium"></span>
+        </div>
+
+        <!-- Персональне привітання Санти -->
+        <div class="text-center mb-5">
+          <p class="text-base sm:text-lg font-bold text-emerald-900">
+            Привіт, <span id="santa-greeting-name" class="text-red-700 font-black">...</span>! 👋
+          </p>
+          <p id="santa-greeting-role" class="text-xs font-semibold text-gray-500 mt-0.5"></p>
+          <h2 class="text-xl sm:text-3xl font-black text-emerald-950 mt-2">
+            Ваша новорічна місія розкрита 🎅✨
+          </h2>
+        </div>
+
+        <!-- Головна золота картка отримувача -->
+        <div class="relative bg-gradient-to-br from-emerald-950 via-emerald-900 to-[#062c22] text-white rounded-3xl p-6 sm:p-9 gold-glow text-center overflow-hidden my-5">
+          <div class="absolute top-3 left-4 text-2xl opacity-30 select-none">❄️</div>
+          <div class="absolute top-3 right-4 text-2xl opacity-30 select-none">✨</div>
+          <div class="absolute bottom-3 left-4 text-2xl opacity-30 select-none">🎁</div>
+          <div class="absolute bottom-3 right-4 text-2xl opacity-30 select-none">🎄</div>
+
+          <span class="inline-block px-3.5 py-1 rounded-full bg-amber-400/20 border border-amber-300/45 text-amber-300 text-xs font-extrabold uppercase tracking-widest mb-3">
+            Ви — Таємний Санта для:
+          </span>
+
+          <div id="recipient-main-card-text" class="text-2xl sm:text-4xl font-black text-white tracking-tight my-2 drop-shadow leading-snug">
+            —
+          </div>
+
+          <div class="mt-3 inline-flex items-center gap-2 px-4 py-1.5 rounded-2xl bg-white/15 border border-white/25 text-amber-200 font-bold text-sm sm:text-base">
+            <span id="recipient-badge-icon">🏪</span>
+            <span id="recipient-badge-text">—</span>
+          </div>
+        </div>
+
+        <!-- Готовий блок підпису посилки для ельфійки Світлани -->
+        <div class="mt-6 bg-amber-50 border-2 border-amber-300/90 rounded-2xl p-4 sm:p-5">
+          <div class="flex items-start gap-3">
+            <span class="text-2xl sm:text-3xl">🧝‍♀️</span>
+            <div class="flex-1 min-w-0">
+              <h3 class="font-extrabold text-amber-950 text-sm sm:text-base">
+                Підпис для посилки на склад (для ельфійки Світлани):
+              </h3>
+              <p class="text-xs text-amber-800 mt-0.5">
+                Обов'язково вкажіть цей підпис на пакуванні при відправці на склад 14–21 грудня:
+              </p>
+
+              <div class="mt-3 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+                <div
+                  id="package-label-box"
+                  class="flex-1 bg-white px-4 py-3 rounded-xl border border-amber-300 font-black text-emerald-950 text-sm sm:text-base select-all truncate"
+                >
+                  —
+                </div>
+                <button
+                  id="copy-package-label-btn"
+                  type="button"
+                  class="px-4 py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-sm shadow-sm transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer"
+                >
+                  <span>📋 Скопіювати підпис</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Коротке нагадування правил та дат -->
+        <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm">
+          <div class="bg-emerald-50/80 rounded-2xl p-3.5 border border-emerald-200 flex items-start gap-2.5">
+            <span class="text-xl">💰</span>
+            <div>
+              <div class="font-bold text-emerald-950">Бюджет: 200 – 500 грн</div>
+              <div class="text-xs text-emerald-800 mt-0.5">Головне — обрати подарунок із душею та теплом ❤️</div>
+            </div>
+          </div>
+          <div class="bg-red-50/75 rounded-2xl p-3.5 border border-red-200 flex items-start gap-2.5">
+            <span class="text-xl">🤫</span>
+            <div>
+              <div class="font-bold text-red-950">Зберігайте інтригу до Нового року!</div>
+              <div class="text-xs text-red-800 mt-0.5">Відправка на склад: 14–21 грудня. Вручення: 22–31 грудня.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ЕКРАН 3: ПАНЕЛЬ АДМІНІСТРАТОРА (захищена паролем 5641301) -->
+      <div id="view-admin" class="hidden bg-[#fffdf9]/95 backdrop-blur-md rounded-3xl p-5 sm:p-8 shadow-2xl border-2 border-emerald-500 animate-card-enter">
+        <!-- Шапка адмін-панелі -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-gray-200">
+          <div>
+            <span class="inline-block text-xs font-extrabold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-lg mb-1">
+              🔐 Панель адміністратора PORTER
+            </span>
+            <h2 class="text-xl sm:text-2xl font-black text-emerald-950">
+              Керування грою «Тайний Санта»
+            </h2>
+          </div>
+
+          <button
+            id="exit-admin-btn"
+            type="button"
+            class="px-4 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold text-sm transition-colors self-start sm:self-auto cursor-pointer"
+          >
+            ← Вийти з адмінки
+          </button>
+        </div>
+
+        <!-- Аудит та статистика -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-5">
+          <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4">
+            <div class="text-xs font-bold text-emerald-700">Всього учасників</div>
+            <div id="admin-stat-total" class="text-2xl font-black text-emerald-950 mt-0.5">0</div>
+          </div>
+
+          <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+            <div class="text-xs font-bold text-amber-800">Отримали отримувача</div>
+            <div id="admin-stat-used" class="text-2xl font-black text-amber-950 mt-0.5">0 / 0</div>
+          </div>
+
+          <div id="admin-integrity-card" class="bg-emerald-50 border border-emerald-300 rounded-2xl p-4">
+            <div class="text-xs font-bold text-emerald-800">Автоматичний аудит пар</div>
+            <div id="admin-stat-integrity" class="text-sm font-extrabold text-emerald-900 mt-1">
+              ✅ Перевірка пар: 0 збігів сам із собою
+            </div>
+          </div>
+        </div>
+
+        <!-- Панель швидких утиліт адміністратора -->
+        <div class="mt-4 p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-wrap items-center gap-2.5">
+          <button
+            id="admin-reshuffle-btn"
+            type="button"
+            class="px-4 py-2.5 rounded-xl bg-red-700 hover:bg-red-800 text-white font-bold text-xs sm:text-sm shadow-sm transition-colors cursor-pointer"
+          >
+            🎲 Перемішати пари заново
+          </button>
+
+          <button
+            id="admin-copy-all-codes-btn"
+            type="button"
+            class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs sm:text-sm shadow-sm transition-colors cursor-pointer"
+          >
+            📋 Скопіювати всі коди списком
+          </button>
+
+          <button
+            id="admin-unlock-device-btn"
+            type="button"
+            class="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm shadow-sm transition-colors cursor-pointer"
+          >
+            🔓 Скинути блокування на цьому пристрої
+          </button>
+        </div>
+
+        <!-- Вкладки адмінки -->
+        <div class="flex flex-wrap gap-2 mt-6 border-b border-gray-200 pb-3">
+          <button
+            id="tab-master-btn"
+            type="button"
+            class="px-4 py-2.5 rounded-xl font-bold text-sm bg-emerald-800 text-white shadow-sm transition-colors cursor-pointer"
+          >
+            📊 Хто кому випав та персональні коди
+          </button>
+          <button
+            id="tab-add-btn"
+            type="button"
+            class="px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors cursor-pointer"
+          >
+            ➕ Додати учасників / Масовий імпорт
+          </button>
+        </div>
+
+        <!-- ВКЛАДКА 1: Головна таблиця контролю (Хто кому випав + Коди + Дії) -->
+        <div id="admin-tab-master" class="mt-5 space-y-4">
+          <div class="flex flex-col sm:flex-row gap-3 justify-between">
+            <div class="relative flex-1">
+              <span class="absolute inset-y-0 left-3.5 flex items-center text-gray-400 pointer-events-none">🔍</span>
+              <input
+                id="admin-search-input"
+                type="text"
+                placeholder="Пошук за ім'ям, кодом, магазином або отримувачем..."
+                class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 text-sm focus:outline-none focus:border-emerald-600"
+              />
+            </div>
+
+            <select
+              id="admin-status-filter"
+              class="px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm font-semibold bg-white focus:outline-none focus:border-emerald-600"
+            >
+              <option value="all">Усі статуси</option>
+              <option value="used">🟢 Переглянув</option>
+              <option value="pending">⚪ Очікує</option>
+            </select>
+          </div>
+
+          <div class="overflow-x-auto rounded-2xl border border-gray-200 shadow-sm">
+            <table class="w-full text-left border-collapse text-sm">
+              <thead>
+                <tr class="bg-emerald-950 text-white text-xs uppercase tracking-wider">
+                  <th class="py-3.5 px-4">Хто дарує (Санта)</th>
+                  <th class="py-3.5 px-4">Персональний код</th>
+                  <th class="py-3.5 px-4">Кому дарує (Отримувач)</th>
+                  <th class="py-3.5 px-4">Статус та дії</th>
+                </tr>
+              </thead>
+              <tbody id="admin-master-tbody" class="divide-y divide-gray-200 bg-white">
+                <!-- Динамічно рендериться -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ВКЛАДКА 2: Додавання одного учасника або масовий імпорт -->
+        <div id="admin-tab-add" class="hidden mt-5 space-y-6">
+          <!-- Форма додавання одного учасника -->
+          <div class="bg-gray-50 rounded-2xl p-4 sm:p-5 border border-gray-200">
+            <h3 class="font-bold text-emerald-950 text-base mb-3">➕ Додати одного учасника</h3>
+            <form id="single-add-form" class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+              <div class="sm:col-span-3">
+                <label class="block text-xs font-bold text-gray-600 mb-1">Категорія</label>
+                <select
+                  id="add-role-select"
+                  class="w-full p-2.5 rounded-xl border border-gray-300 bg-white text-sm font-semibold"
+                >
+                  <option value="store">Працівник магазину</option>
+                  <option value="manager">Менеджер</option>
+                </select>
+              </div>
+
+              <div id="add-store-col" class="sm:col-span-3">
+                <label class="block text-xs font-bold text-gray-600 mb-1">Номер магазину</label>
+                <input
+                  id="add-store-input"
+                  type="text"
+                  placeholder="Напр.: 12"
+                  class="w-full p-2.5 rounded-xl border border-gray-300 bg-white text-sm"
+                />
+              </div>
+
+              <div id="add-name-col" class="sm:col-span-4">
+                <label id="add-name-label" class="block text-xs font-bold text-gray-600 mb-1">Прізвище та Ім'я</label>
+                <input
+                  id="add-name-input"
+                  type="text"
+                  required
+                  placeholder="Коваленко Олена"
+                  class="w-full p-2.5 rounded-xl border border-gray-300 bg-white text-sm"
+                />
+              </div>
+
+              <div class="sm:col-span-2 flex items-end">
+                <button
+                  type="submit"
+                  class="w-full py-2.5 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm transition-colors cursor-pointer"
+                >
+                  Додати
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Масовий імпорт списку -->
+          <div class="bg-amber-50/75 rounded-2xl p-4 sm:p-5 border border-amber-200">
+            <h3 class="font-bold text-amber-950 text-base mb-1">📥 Масовий імпорт списку учасників</h3>
+            <p class="text-xs text-amber-900 mb-3 leading-relaxed">
+              Вставте список із нового рядка у форматі:
+              <code class="bg-white px-1.5 py-0.5 rounded border border-amber-300 font-semibold">12 | Коваленко Олена</code>
+              (або <code class="bg-white px-1.5 py-0.5 rounded border border-amber-300 font-semibold">Магазин 12 | Коваленко Олена</code>)
+              та для менеджерів:
+              <code class="bg-white px-1.5 py-0.5 rounded border border-amber-300 font-semibold">Менеджер | Ірина Миколаївна</code>.
+              Система автоматично згенерує унікальні коди та розподілить пари без жодного самовипадіння!
+            </p>
+            <textarea
+              id="bulk-import-textarea"
+              rows="6"
+              placeholder="12 | Коваленко Олена&#10;12 | Мельник Дмитро&#10;5 | Шевченко Марія&#10;Менеджер | Ірина Миколаївна&#10;Менеджер | Світлана Олександрівна"
+              class="w-full p-3.5 rounded-xl border border-amber-300 bg-white text-sm font-mono focus:outline-none focus:border-emerald-600"
+            ></textarea>
+
+            <div class="mt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <label class="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-amber-950 cursor-pointer">
+                <input id="bulk-replace-checkbox" type="checkbox" checked class="w-4 h-4 accent-emerald-700 rounded" />
+                <span>Замінити тестовий/поточний список новим (рекомендовано)</span>
+              </label>
+
+              <button
+                id="bulk-import-submit-btn"
+                type="button"
+                class="px-5 py-2.5 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-sm shadow-sm transition-colors cursor-pointer"
+              >
+                ✨ Згенерувати коди та пари
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Футер із кнопкою входу в поле адміністратора -->
+    <footer class="mt-8 pt-4 text-center text-emerald-200/75 text-xs flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div>© PORTER • Новорічна гра «Тайний Санта» 🎄✨</div>
+      <button
+        id="open-admin-modal-btn"
+        type="button"
+        class="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-emerald-100 border border-white/15 font-semibold transition-colors cursor-pointer"
+      >
+        🔐 Поле адміністратора
+      </button>
+    </footer>
+  </div>
+
+  <!-- МОДАЛЬНЕ ВІКНО 1: Вхід у поле адміністратора (пароль 5641301) -->
+  <div id="modal-admin-password" class="hidden fixed inset-0 z-40 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div id="admin-password-card" class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-gray-200 animate-card-enter">
+      <div class="text-center mb-4">
+        <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-2xl flex items-center justify-center mx-auto mb-2.5">
+          🔐
+        </div>
+        <h3 class="text-lg font-black text-gray-900">Поле адміністратора</h3>
+        <p class="text-xs text-gray-500 mt-1">Введіть пароль організатора для керування кодами та парами</p>
+      </div>
+
+      <form id="admin-password-form" class="space-y-3">
+        <div>
+          <input
+            id="admin-password-input"
+            type="password"
+            inputmode="numeric"
+            autocomplete="off"
+            placeholder="Введіть пароль..."
+            class="w-full p-3.5 rounded-xl border-2 border-gray-200 text-center text-lg font-bold tracking-widest focus:outline-none focus:border-emerald-600"
+          />
+          <p id="admin-password-error" class="hidden text-xs font-bold text-red-600 text-center mt-2">
+            ❌ Невірний пароль. Спробуйте ще раз.
+          </p>
+        </div>
+
+        <div class="flex gap-2 pt-1">
+          <button
+            id="close-admin-modal-btn"
+            type="button"
+            class="flex-1 py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-sm cursor-pointer"
+          >
+            Скасувати
+          </button>
+          <button
+            type="submit"
+            class="flex-1 py-3 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-sm shadow-sm cursor-pointer"
+          >
+            Увійти
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- МОДАЛЬНЕ ВІКНО 2: Універсальне підтвердження дій (заміна confirm) -->
+  <div id="modal-generic-confirm" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-gray-200 animate-card-enter">
+      <h3 id="generic-confirm-title" class="text-lg font-black text-gray-900">Підтвердження дії</h3>
+      <p id="generic-confirm-text" class="text-sm text-gray-600 mt-2 leading-relaxed">Ви впевнені?</p>
+      <div class="mt-5 flex justify-end gap-2.5">
+        <button
+          id="generic-confirm-cancel"
+          type="button"
+          class="px-4 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold text-sm cursor-pointer"
+        >
+          Скасувати
+        </button>
+        <button
+          id="generic-confirm-ok"
+          type="button"
+          class="px-4 py-2.5 rounded-xl bg-red-700 hover:bg-red-800 text-white font-bold text-sm shadow-sm cursor-pointer"
+        >
+          Підтвердити
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK та логіка гри -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import {
+      getFirestore,
+      collection,
+      doc,
+      getDoc,
+      setDoc,
+      updateDoc,
+      deleteDoc,
+      onSnapshot,
+      writeBatch,
+      runTransaction
+    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // =========================================================================
+    // 1. КОНФІГУРАЦІЯ ТА ГЛОБАЛЬНИЙ СТАН ДОДАТКУ
+    // =========================================================================
+    const ADMIN_PASSWORD = "5641301";
+    const appId = typeof __app_id !== "undefined" ? __app_id : "porter-secret-santa";
+    const firebaseConfig = typeof __firebase_config !== "undefined" ? JSON.parse(__firebase_config) : null;
+
+    let app = null;
+    let auth = null;
+    let db = null;
+    let currentUser = null;
+
+    // Стан даних у пам'яті
+    let participants = [];          // Повний список учасників із Firestore
+    let lockedSession = null;       // Зафіксована пара поточного пристрою { santaId, santaName, santaRole, santaStore, santaCode, receiverId, receiverName, receiverRole, receiverStore, lockedAt }
+    let isAdminAuthenticated = false;
+    let isSeedingInProgress = false;
+
+    // 6 реалістичних стартових учасників PORTER із готовими унікальними кодами
+    const INITIAL_SAMPLE_PARTICIPANTS = [
+      { id: "p_1024", code: "PRT-1024", role: "store", storeNumber: "1", fullName: "Коваленко Анна" },
+      { id: "p_2048", code: "PRT-2048", role: "store", storeNumber: "1", fullName: "Мельник Дмитро" },
+      { id: "p_3156", code: "PRT-3156", role: "store", storeNumber: "2", fullName: "Шевченко Марія" },
+      { id: "p_4829", code: "PRT-4829", role: "store", storeNumber: "3", fullName: "Бондаренко Олександр" },
+      { id: "p_5790", code: "PRT-5790", role: "manager", storeNumber: "", fullName: "Олена Петрівна" },
+      { id: "p_6412", code: "PRT-6412", role: "manager", storeNumber: "", fullName: "Світлана Олександрівна" }
+    ];
+
+    // =========================================================================
+    // 2. АЛГОРИТМ САТТОЛО (ГАРАНТОВАНИЙ БЕЗКОНФЛІКТНИЙ РОЗПОДІЛ ПАР)
+    // =========================================================================
+    /**
+     * Генерує випадкову циклічну перестановку (derangement) за алгоритмом Саттоло.
+     * Гарантує для будь-якого N >= 2:
+     * 1) Кожен учасник має валідний receiverId;
+     * 2) Жоден учасник ніколи не випаде сам собі (santa.id !== receiver.id);
+     * 3) Кожен учасник отримає рівно один подарунок.
+     */
+    function generateSattoloDerangement(rosterList, resetUsedStatus = true) {
+      const n = rosterList.length;
+      if (n < 2) {
+        return rosterList.map((item) => ({
+          ...item,
+          receiverId: "",
+          used: resetUsedStatus ? false : Boolean(item.used),
+          usedAt: resetUsedStatus ? null : (item.usedAt || null),
+          usedByUid: resetUsedStatus ? null : (item.usedByUid || null)
+        }));
+      }
+
+      const shuffled = [...rosterList];
+      for (let i = n - 1; i > 0; i--) {
+        // Випадковий індекс j суворо менший за i (0 <= j < i)
+        const j = Math.floor(Math.random() * i);
+        const temp = shuffled[i];
+        shuffled[i] = shuffled[j];
+        shuffled[j] = temp;
+      }
+
+      return rosterList.map((item, idx) => ({
+        ...item,
+        receiverId: shuffled[idx].id,
+        used: resetUsedStatus ? false : Boolean(item.used),
+        usedAt: resetUsedStatus ? null : (item.usedAt || null),
+        usedByUid: resetUsedStatus ? null : (item.usedByUid || null)
+      }));
+    }
+
+    // Генератор унікального персонального коду формату PRT-XXXX
+    function generateUniqueSecretCode(existingCodesSet) {
+      let code = "";
+      let attempts = 0;
+      do {
+        const num = Math.floor(1000 + Math.random() * 9000);
+        code = `PRT-${num}`;
+        attempts++;
+      } while (existingCodesSet.has(code) && attempts < 5000);
+      existingCodesSet.add(code);
+      return code;
+    }
+
+    // =========================================================================
+    // 3. ДОПОМІЖНІ ФУНКЦІЇ ІНТЕРФЕЙСУ ТА ФОРМАТУВАННЯ
+    // =========================================================================
+    function initSnowfall() {
+      const container = document.getElementById("snow-container");
+      const symbols = ["❄", "❅", "❆", "•"];
+      for (let i = 0; i < 24; i++) {
+        const flake = document.createElement("div");
+        flake.className = "snowflake";
+        flake.textContent = symbols[i % symbols.length];
+        flake.style.left = `${Math.random() * 100}vw`;
+        flake.style.fontSize = `${10 + Math.random() * 14}px`;
+        flake.style.animationDuration = `${10 + Math.random() * 14}s`;
+        flake.style.animationDelay = `${-Math.random() * 15}s`;
+        container.appendChild(flake);
+      }
+    }
+
+    function showToast(message, type = "info") {
+      const container = document.getElementById("toast-container");
+      const toast = document.createElement("div");
+      const colors = {
+        success: "bg-emerald-900 text-white border-emerald-400",
+        error: "bg-red-800 text-white border-red-400",
+        info: "bg-gray-900 text-white border-amber-400"
+      };
+      toast.className = `pointer-events-auto px-4 py-3 rounded-2xl border shadow-xl text-xs sm:text-sm font-semibold animate-card-enter ${colors[type] || colors.info}`;
+      toast.textContent = message;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.transition = "opacity 0.3s ease";
+        setTimeout(() => toast.remove(), 300);
+      }, 3600);
+    }
+
+    function copyTextToClipboard(text, successMsg = "Скопійовано! 📋") {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand("copy");
+        showToast(successMsg, "success");
+      } catch (err) {
+        showToast("Не вдалося скопіювати автоматично. Виділіть текст вручну.", "error");
+      }
+      document.body.removeChild(textarea);
+    }
+
+    function launchConfetti() {
+      const canvas = document.getElementById("confetti-canvas");
+      const ctx = canvas.getContext("2d");
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const palette = ["#f59e0b", "#ef4444", "#10b981", "#fef08a", "#ffffff"];
+      const pieces = Array.from({ length: 85 }, () => ({
+        x: Math.random() * canvas.width,
+        y: -20 - Math.random() * canvas.height * 0.4,
+        w: 7 + Math.random() * 7,
+        h: 10 + Math.random() * 10,
+        color: palette[Math.floor(Math.random() * palette.length)],
+        vx: -2 + Math.random() * 4,
+        vy: 3 + Math.random() * 5,
+        angle: Math.random() * 360,
+        spin: -6 + Math.random() * 12
+      }));
+
+      let frame = 0;
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        pieces.forEach((p) => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.angle += p.spin;
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate((p.angle * Math.PI) / 180);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+          ctx.restore();
+        });
+        frame++;
+        if (frame < 140) {
+          requestAnimationFrame(draw);
+        } else {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+      }
+      requestAnimationFrame(draw);
+    }
+
+    function openGenericConfirm(title, text) {
+      return new Promise((resolve) => {
+        const modal = document.getElementById("modal-generic-confirm");
+        document.getElementById("generic-confirm-title").textContent = title;
+        document.getElementById("generic-confirm-text").textContent = text;
+        modal.classList.remove("hidden");
+
+        const okBtn = document.getElementById("generic-confirm-ok");
+        const cancelBtn = document.getElementById("generic-confirm-cancel");
+
+        const cleanup = (result) => {
+          modal.classList.add("hidden");
+          okBtn.removeEventListener("click", onOk);
+          cancelBtn.removeEventListener("click", onCancel);
+          resolve(result);
+        };
+
+        const onOk = () => cleanup(true);
+        const onCancel = () => cleanup(false);
+
+        okBtn.addEventListener("click", onOk);
+        cancelBtn.addEventListener("click", onCancel);
+      });
+    }
+
+    function formatRoleLabel(role, storeNumber) {
+      return role === "manager" ? "Менеджер" : `Магазин №${storeNumber}`;
+    }
+
+    function formatRecipientFullCard(role, storeNumber, fullName) {
+      return role === "manager"
+        ? `Менеджер — ${fullName}`
+        : `Магазин №${storeNumber} — ${fullName}`;
+    }
+
+    function normalizeStoreNumber(raw) {
+      if (!raw) return "";
+      return String(raw)
+        .replace(/магазин/gi, "")
+        .replace(/№/g, "")
+        .trim();
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    // =========================================================================
+    // 4. РОБОТА З FIRESTORE (АВТЕНТИФІКАЦІЯ, БЛОКУВАННЯ, СИНХРОНІЗАЦІЯ)
+    // =========================================================================
+    function getParticipantsColRef() {
+      return collection(db, "artifacts", appId, "public", "data", "participants_v2");
+    }
+
+    function getDeviceLockDocRef(uid) {
+      return doc(db, "artifacts", appId, "users", uid, "device_lock", "session");
+    }
+
+    // Завантаження збереженого блокування пристрою при старті або перезавантаженні сторінки
+    async function loadDeviceLockFromFirestore() {
+      if (!currentUser) return null;
+      try {
+        const snap = await getDoc(getDeviceLockDocRef(currentUser.uid));
+        if (snap.exists()) {
+          return snap.data();
+        }
+      } catch (err) {
+        console.error("Помилка читання блокування пристрою:", err);
+      }
+      return null;
+    }
+
+    // Початкове наповнення бази 6 тестовими учасниками з кодами при першому відкритті
+    async function seedInitialSampleData() {
+      if (!currentUser || isSeedingInProgress) return;
+      isSeedingInProgress = true;
+      try {
+        const paired = generateSattoloDerangement(INITIAL_SAMPLE_PARTICIPANTS, true);
+        const batch = writeBatch(db);
+        paired.forEach((p) => {
+          batch.set(doc(getParticipantsColRef(), p.id), p);
+        });
+        await batch.commit();
+      } catch (err) {
+        console.error("Помилка ініціалізації стартового списку:", err);
+      } finally {
+        isSeedingInProgress = false;
+      }
+    }
+
+    // Підписка на оновлення колекції учасників у реальному часі
+    function startParticipantsListener() {
+      if (!currentUser) return;
+      const colRef = getParticipantsColRef();
+
+      onSnapshot(
+        colRef,
+        async (snapshot) => {
+          if (snapshot.empty) {
+            await seedInitialSampleData();
+            return;
+          }
+
+          const list = [];
+          snapshot.forEach((docSnap) => {
+            list.push({ id: docSnap.id, ...docSnap.data() });
+          });
+
+          // Сортування: спочатку магазини за номером, потім менеджери за абеткою
+          list.sort((a, b) => {
+            if (a.role !== b.role) return a.role === "store" ? -1 : 1;
+            if (a.role === "store") {
+              const nA = parseInt(a.storeNumber, 10);
+              const nB = parseInt(b.storeNumber, 10);
+              if (!isNaN(nA) && !isNaN(nB) && nA !== nB) return nA - nB;
+              if (a.storeNumber !== b.storeNumber) {
+                return String(a.storeNumber).localeCompare(String(b.storeNumber), "uk");
+              }
+            }
+            return a.fullName.localeCompare(b.fullName, "uk");
+          });
+
+          participants = list;
+
+          // Якщо цей пристрій заблокований, перевіряємо чи адмін не скинув статус цього учасника
+          if (lockedSession && lockedSession.santaId) {
+            const liveSanta = participants.find((p) => p.id === lockedSession.santaId);
+            if (!liveSanta || liveSanta.used === false) {
+              // Адміністратор скинув статус або перемішав гру — розблоковуємо пристрій
+              lockedSession = null;
+              if (currentUser) {
+                deleteDoc(getDeviceLockDocRef(currentUser.uid)).catch(() => {});
+              }
+            } else if (liveSanta && liveSanta.receiverId) {
+              // Синхронізуємо актуального отримувача на випадок оновлення даних
+              const liveReceiver = participants.find((p) => p.id === liveSanta.receiverId);
+              if (liveReceiver) {
+                lockedSession = {
+                  ...lockedSession,
+                  santaName: liveSanta.fullName,
+                  santaRole: liveSanta.role,
+                  santaStore: liveSanta.storeNumber || "",
+                  receiverId: liveReceiver.id,
+                  receiverName: liveReceiver.fullName,
+                  receiverRole: liveReceiver.role,
+                  receiverStore: liveReceiver.storeNumber || ""
+                };
+              }
+            }
+          }
+
+          routeActiveView();
+        },
+        (error) => {
+          console.error("Помилка синхронізації бази:", error);
+          showToast("Помилка з'єднання з базою даних. Перевірте інтернет.", "error");
+        }
+      );
+    }
+
+    // =========================================================================
+    // 5. ПЕРЕМИКАННЯ ЕКРАНІВ (МАРШРУТИЗАЦІЯ СТАНУ)
+    // =========================================================================
+    function routeActiveView() {
+      const viewLoading = document.getElementById("view-loading");
+      const viewCodeEntry = document.getElementById("view-code-entry");
+      const viewLocked = document.getElementById("view-locked");
+      const viewAdmin = document.getElementById("view-admin");
+
+      viewLoading.classList.add("hidden");
+
+      // 1. Якщо відкрито панель адміністратора
+      if (isAdminAuthenticated) {
+        viewCodeEntry.classList.add("hidden");
+        viewLocked.classList.add("hidden");
+        viewAdmin.classList.remove("hidden");
+        renderAdminDashboard();
+        return;
+      }
+
+      viewAdmin.classList.add("hidden");
+
+      // 2. Якщо на цьому пристрої вже активовано персональний код — показуємо ТІЛЬКИ заблокований екран
+      if (lockedSession && lockedSession.receiverName) {
+        viewCodeEntry.classList.add("hidden");
+        viewLocked.classList.remove("hidden");
+        renderLockedRecipientScreen(lockedSession);
+        return;
+      }
+
+      // 3. Інакше показуємо поле введення персонального коду
+      viewLocked.classList.add("hidden");
+      viewCodeEntry.classList.remove("hidden");
+    }
+
+    // =========================================================================
+    // 6. ПЕРЕВІРКА ТА АКТИВАЦІЯ ПЕРСОНАЛЬНОГО КОДУ (КЛЮЧОВА ЛОГІКА)
+    // =========================================================================
+    function showCodeError(message) {
+      const box = document.getElementById("code-error-box");
+      box.textContent = message;
+      box.classList.remove("hidden");
+      box.classList.remove("animate-shake");
+      void box.offsetWidth;
+      box.classList.add("animate-shake");
+    }
+
+    function hideCodeError() {
+      document.getElementById("code-error-box").classList.add("hidden");
+    }
+
+    async function handleSecretCodeSubmit(e) {
+      e.preventDefault();
+      hideCodeError();
+
+      const inputEl = document.getElementById("secret-code-input");
+      const submitBtn = document.getElementById("submit-code-btn");
+      const enteredCode = inputEl.value.trim().toUpperCase();
+      inputEl.value = enteredCode;
+
+      if (!enteredCode) {
+        showCodeError("⚠️ Будь ласка, введіть ваш персональний код.");
+        inputEl.focus();
+        return;
+      }
+
+      if (!currentUser) {
+        showCodeError("⏳ Зачекайте секунду, встановлюється захищене з'єднання...");
+        return;
+      }
+
+      // Пошук учасника за введеним персональним кодом
+      const matchedSanta = participants.find(
+        (p) => String(p.code || "").trim().toUpperCase() === enteredCode
+      );
+
+      if (!matchedSanta) {
+        showCodeError("❌ Невірний код. Перевірте символи або зверніться до організатора.");
+        inputEl.focus();
+        return;
+      }
+
+      // Якщо код вже був використаний
+      if (matchedSanta.used) {
+        // Якщо він був використаний саме цим користувачем (uid), відновлюємо його екран
+        if (matchedSanta.usedByUid === currentUser.uid) {
+          const rec = participants.find((p) => p.id === matchedSanta.receiverId);
+          if (rec) {
+            lockedSession = {
+              santaId: matchedSanta.id,
+              santaName: matchedSanta.fullName,
+              santaRole: matchedSanta.role,
+              santaStore: matchedSanta.storeNumber || "",
+              santaCode: matchedSanta.code,
+              receiverId: rec.id,
+              receiverName: rec.fullName,
+              receiverRole: rec.role,
+              receiverStore: rec.storeNumber || "",
+              lockedAt: matchedSanta.usedAt || new Date().toISOString()
+            };
+            await setDoc(getDeviceLockDocRef(currentUser.uid), lockedSession).catch(() => {});
+            routeActiveView();
+            return;
+          }
+        }
+
+        // Якщо код використаний на іншому пристрої
+        showCodeError(
+          "❌ Цей персональний код вже був використаний на іншому пристрої! Якщо це були не ви — негайно напишіть організатору."
+        );
+        return;
+      }
+
+      // Атомарна транзакція: позначаємо код використаним, читаємо отримувача і зберігаємо блокування пристрою
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<span>⏳ Відкриваємо вашу картку...</span>`;
+
+      try {
+        const santaDocRef = doc(getParticipantsColRef(), matchedSanta.id);
+        const receiverDocRef = doc(getParticipantsColRef(), matchedSanta.receiverId);
+        const lockDocRef = getDeviceLockDocRef(currentUser.uid);
+        const nowIso = new Date().toISOString();
+
+        const createdSession = await runTransaction(db, async (transaction) => {
+          const santaSnap = await transaction.get(santaDocRef);
+          if (!santaSnap.exists()) {
+            throw new Error("❌ Невірний код. Перевірте символи або зверніться до організатора.");
+          }
+
+          const santaData = santaSnap.data();
+          if (santaData.used && santaData.usedByUid !== currentUser.uid) {
+            throw new Error(
+              "❌ Цей персональний код вже був використаний на іншому пристрої! Якщо це були не ви — негайно напишіть організатору."
+            );
+          }
+
+          if (!santaData.receiverId) {
+            throw new Error("⚠️ Пари ще не сформовані. Зверніться до адміністратора.");
+          }
+
+          const receiverSnap = await transaction.get(receiverDocRef);
+          if (!receiverSnap.exists()) {
+            throw new Error("⚠️ Отримувача не знайдено у списку. Зверніться до адміністратора.");
+          }
+          const receiverData = receiverSnap.data();
+
+          // Оновлюємо статус коду в базі як використаний
+          transaction.update(santaDocRef, {
+            used: true,
+            usedAt: nowIso,
+            usedByUid: currentUser.uid
+          });
+
+          // Формуємо повний об'єкт сесії для миттєвого відображення і збереження за цим пристроєм
+          const sessionPayload = {
+            santaId: santaSnap.id,
+            santaName: santaData.fullName,
+            santaRole: santaData.role,
+            santaStore: santaData.storeNumber || "",
+            santaCode: santaData.code,
+            receiverId: receiverSnap.id,
+            receiverName: receiverData.fullName,
+            receiverRole: receiverData.role,
+            receiverStore: receiverData.storeNumber || "",
+            lockedAt: nowIso
+          };
+
+          transaction.set(lockDocRef, sessionPayload);
+          return sessionPayload;
+        });
+
+        // Миттєво записуємо в стан та перемикаємо на екран отримувача
+        lockedSession = createdSession;
+        inputEl.value = "";
+        launchConfetti();
+        showToast("Вітаємо! Ви стали Таємним Сантою 🎅🎁", "success");
+        routeActiveView();
+      } catch (err) {
+        console.error("Помилка активації коду:", err);
+        showCodeError(err.message || "Помилка при перевірці коду. Спробуйте ще раз.");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<span>🎁 Дізнатися мого отримувача</span>`;
+      }
+    }
+
+    // =========================================================================
+    // 7. РЕНДЕР ЗАБЛОКОВАНОГО ЕКРАНУ ОТРИМУВАЧА
+    // =========================================================================
+    function renderLockedRecipientScreen(session) {
+      document.getElementById("santa-greeting-name").textContent = session.santaName;
+      document.getElementById("santa-greeting-role").textContent = `${formatRoleLabel(session.santaRole, session.santaStore)} • Код: ${session.santaCode}`;
+
+      if (session.lockedAt) {
+        try {
+          const dt = new Date(session.lockedAt);
+          document.getElementById("locked-meta-info").textContent =
+            `Активовано: ${dt.toLocaleDateString("uk-UA")} о ${dt.toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" })}`;
+        } catch (_) {
+          document.getElementById("locked-meta-info").textContent = "";
+        }
+      }
+
+      const fullFormattedTarget = formatRecipientFullCard(
+        session.receiverRole,
+        session.receiverStore,
+        session.receiverName
+      );
+
+      document.getElementById("recipient-main-card-text").textContent = fullFormattedTarget;
+      document.getElementById("recipient-badge-icon").textContent =
+        session.receiverRole === "manager" ? "💼" : "🏪";
+      document.getElementById("recipient-badge-text").textContent =
+        formatRoleLabel(session.receiverRole, session.receiverStore);
+      document.getElementById("package-label-box").textContent = fullFormattedTarget;
+    }
+
+    // =========================================================================
+    // 8. ПАНЕЛЬ АДМІНІСТРАТОРА (ПАРОЛЬ 5641301)
+    // =========================================================================
+    function renderAdminDashboard() {
+      const total = participants.length;
+      const usedCount = participants.filter((p) => p.used).length;
+
+      // Аудит пар: перевіряємо чи є збіги сам із собою або відсутні отримувачі
+      let selfMatches = 0;
+      let missingReceivers = 0;
+      const byId = new Map(participants.map((p) => [p.id, p]));
+
+      participants.forEach((p) => {
+        if (!p.receiverId || !byId.has(p.receiverId)) {
+          missingReceivers++;
+        } else if (p.id === p.receiverId) {
+          selfMatches++;
+        }
+      });
+
+      document.getElementById("admin-stat-total").textContent = String(total);
+      document.getElementById("admin-stat-used").textContent = `${usedCount} / ${total}`;
+
+      const integrityCard = document.getElementById("admin-integrity-card");
+      const integrityText = document.getElementById("admin-stat-integrity");
+
+      if (total >= 2 && selfMatches === 0 && missingReceivers === 0) {
+        integrityCard.className = "bg-emerald-50 border border-emerald-300 rounded-2xl p-4";
+        integrityText.className = "text-sm font-extrabold text-emerald-900 mt-1";
+        integrityText.textContent = "✅ Перевірка пар: 0 збігів сам із собою";
+      } else if (total < 2) {
+        integrityCard.className = "bg-amber-50 border border-amber-300 rounded-2xl p-4";
+        integrityText.className = "text-sm font-extrabold text-amber-900 mt-1";
+        integrityText.textContent = "⚠️ Додайте мінімум 2 учасники";
+      } else {
+        integrityCard.className = "bg-red-50 border border-red-400 rounded-2xl p-4";
+        integrityText.className = "text-sm font-extrabold text-red-800 mt-1";
+        integrityText.textContent = `⚠️ Увага: збігів (${selfMatches}), без пари (${missingReceivers})`;
+      }
+
+      renderAdminMasterTable();
+    }
+
+    function renderAdminMasterTable() {
+      const tbody = document.getElementById("admin-master-tbody");
+      const searchVal = document.getElementById("admin-search-input").value.trim().toLowerCase();
+      const statusFilter = document.getElementById("admin-status-filter").value;
+
+      const byId = new Map(participants.map((p) => [p.id, p]));
+
+      const filtered = participants.filter((santa) => {
+        if (statusFilter === "used" && !santa.used) return false;
+        if (statusFilter === "pending" && santa.used) return false;
+
+        if (searchVal) {
+          const rec = byId.get(santa.receiverId);
+          const haystack = [
+            santa.fullName,
+            santa.code,
+            formatRoleLabel(santa.role, santa.storeNumber),
+            rec ? rec.fullName : "",
+            rec ? formatRoleLabel(rec.role, rec.storeNumber) : ""
+          ]
+            .join(" ")
+            .toLowerCase();
+          if (!haystack.includes(searchVal)) return false;
+        }
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="4" class="py-8 text-center text-gray-500 text-sm">
+              Учасників за цим фільтром не знайдено
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = "";
+      filtered.forEach((santa) => {
+        const rec = byId.get(santa.receiverId);
+        const isSelfMatch = rec && santa.id === rec.id;
+
+        const tr = document.createElement("tr");
+        tr.className = isSelfMatch ? "bg-red-50" : "hover:bg-gray-50/90 transition-colors";
+
+        tr.innerHTML = `
+          <!-- 1. Хто дарує (Санта) -->
+          <td class="py-3.5 px-4 align-top">
+            <div class="font-bold text-gray-900">${escapeHtml(santa.fullName)}</div>
+            <div class="text-xs font-semibold text-gray-500 mt-0.5">
+              ${escapeHtml(formatRoleLabel(santa.role, santa.storeNumber))}
+            </div>
+          </td>
+
+          <!-- 2. Персональний код + кнопки копіювання -->
+          <td class="py-3.5 px-4 align-top">
+            <div class="inline-block px-2.5 py-1 rounded-lg bg-amber-100 border border-amber-300 font-mono font-black text-amber-950 text-xs sm:text-sm tracking-wider">
+              ${escapeHtml(santa.code)}
+            </div>
+            <div class="flex flex-wrap gap-1.5 mt-2">
+              <button
+                type="button"
+                data-action="copy-code"
+                class="px-2.5 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold text-xs transition-colors cursor-pointer"
+                title="Скопіювати тільки код"
+              >
+                📋 Код
+              </button>
+              <button
+                type="button"
+                data-action="copy-invite"
+                class="px-2.5 py-1 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-900 font-bold text-xs transition-colors cursor-pointer"
+                title="Скопіювати готове повідомлення для Telegram/Viber"
+              >
+                📨 Запрошення
+              </button>
+            </div>
+          </td>
+
+          <!-- 3. Кому дарує (Отримувач) -->
+          <td class="py-3.5 px-4 align-top">
+            ${
+              rec
+                ? `<div class="font-bold text-emerald-950">${escapeHtml(rec.fullName)}</div>
+                   <div class="text-xs font-semibold text-emerald-700 mt-0.5">${escapeHtml(formatRoleLabel(rec.role, rec.storeNumber))}</div>`
+                : `<span class="text-xs font-bold text-red-600">Не призначено ⚠️</span>`
+            }
+          </td>
+
+          <!-- 4. Статус та дії -->
+          <td class="py-3.5 px-4 align-top">
+            <div class="flex flex-col gap-2">
+              <div>
+                ${
+                  santa.used
+                    ? `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-900 text-xs font-bold">🟢 Переглянув</span>`
+                    : `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gray-100 text-gray-700 text-xs font-bold">⚪ Очікує</span>`
+                }
+              </div>
+
+              <div class="flex flex-wrap items-center gap-1.5">
+                ${
+                  santa.used
+                    ? `<button
+                        type="button"
+                        data-action="reset-status"
+                        class="px-2.5 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold text-xs transition-colors cursor-pointer"
+                        title="Дозволити учаснику повторно ввести код"
+                      >
+                        🔄 Скинути статус
+                      </button>`
+                    : ""
+                }
+                <button
+                  type="button"
+                  data-action="delete-person"
+                  class="px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-bold text-xs transition-colors cursor-pointer"
+                  title="Видалити учасника"
+                >
+                  🗑️
+                </button>
+              </div>
+            </div>
+          </td>
+        `;
+
+        // Обробники кнопок рядка
+        tr.querySelector('[data-action="copy-code"]').addEventListener("click", () => {
+          copyTextToClipboard(santa.code, `Код ${santa.code} скопійовано! 📋`);
+        });
+
+        tr.querySelector('[data-action="copy-invite"]').addEventListener("click", () => {
+          const inviteText =
+            `🎅 Привіт, ${santa.fullName}! Запрошуємо тебе у новорічну гру «ТАЙНИЙ САНТА • PORTER» 🎄✨\n` +
+            `Твій індивідуальний секретний код для входу на сайт: ${santa.code}\n` +
+            `🤫 Нікому його не показуй — код активується лише 1 раз!`;
+          copyTextToClipboard(inviteText, `Запрошення для ${santa.fullName} скопійовано! 📨`);
+        });
+
+        const resetBtn = tr.querySelector('[data-action="reset-status"]');
+        if (resetBtn) {
+          resetBtn.addEventListener("click", async () => {
+            const confirmed = await openGenericConfirm(
+              "🔄 Скинути статус коду?",
+              `Скинути статус використання для "${santa.fullName}" (${santa.code})? Людина зможе знову ввести свій код на іншому пристрої.`
+            );
+            if (!confirmed) return;
+
+            try {
+              await updateDoc(doc(getParticipantsColRef(), santa.id), {
+                used: false,
+                usedAt: null,
+                usedByUid: null
+              });
+              showToast(`Статус коду ${santa.code} скинуто! ✅`, "success");
+            } catch (err) {
+              console.error(err);
+              showToast("Не вдалося скинути статус.", "error");
+            }
+          });
+        }
+
+        tr.querySelector('[data-action="delete-person"]').addEventListener("click", async () => {
+          const confirmed = await openGenericConfirm(
+            "🗑️ Видалити учасника?",
+            `Видалити "${santa.fullName}" (${formatRoleLabel(santa.role, santa.storeNumber)})? Після видалення пари будуть перерозподілені між рештою учасників.`
+          );
+          if (!confirmed) return;
+
+          const remaining = participants
+            .filter((p) => p.id !== santa.id)
+            .map(({ id, code, role, storeNumber, fullName }) => ({
+              id,
+              code,
+              role,
+              storeNumber,
+              fullName
+            }));
+
+          try {
+            await overwriteRosterWithSattolo(remaining, true);
+            showToast("Учасника видалено, пари безпечно перерозподілено ✅", "success");
+          } catch (err) {
+            console.error(err);
+            showToast("Помилка при видаленні учасника.", "error");
+          }
+        });
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Повний перезапис списку з гарантованим жеребкуванням Саттоло
+    async function overwriteRosterWithSattolo(baseRoster, resetUsed = true) {
+      if (!currentUser) return;
+      const paired = generateSattoloDerangement(baseRoster, resetUsed);
+      const batch = writeBatch(db);
+
+      const newIds = new Set(paired.map((p) => p.id));
+      participants.forEach((oldItem) => {
+        if (!newIds.has(oldItem.id)) {
+          batch.delete(doc(getParticipantsColRef(), oldItem.id));
+        }
+      });
+
+      paired.forEach((p) => {
+        batch.set(doc(getParticipantsColRef(), p.id), p);
+      });
+
+      await batch.commit();
+    }
+
+    // =========================================================================
+    // 9. ПРИВ'ЯЗКА ПОДІЙ ІНТЕРФЕЙСУ
+    // =========================================================================
+    function bindUIEvents() {
+      // Згортання/розгортання правил гри
+      const toggleRulesBtn = document.getElementById("toggle-rules-btn");
+      const rulesContent = document.getElementById("rules-content");
+      const rulesChevron = document.getElementById("rules-chevron");
+      toggleRulesBtn.addEventListener("click", () => {
+        const isHidden = rulesContent.classList.toggle("hidden");
+        rulesChevron.textContent = isHidden ? "Розгорнути ▼" : "Згорнути ▲";
+      });
+
+      // Автоматичне очищення пробілів та переведення в верхній регістр під час вводу коду
+      const codeInput = document.getElementById("secret-code-input");
+      codeInput.addEventListener("input", () => {
+        hideCodeError();
+        const cursor = codeInput.selectionStart;
+        codeInput.value = codeInput.value.toUpperCase();
+        try {
+          codeInput.setSelectionRange(cursor, cursor);
+        } catch (_) {}
+      });
+
+      // Відправка персонального коду
+      document.getElementById("secret-code-form").addEventListener("submit", handleSecretCodeSubmit);
+
+      // Копіювання підпису посилки для ельфійки Світлани
+      document.getElementById("copy-package-label-btn").addEventListener("click", () => {
+        const label = document.getElementById("package-label-box").textContent.trim();
+        copyTextToClipboard(label, "Підпис для посилки скопійовано! 🧝‍♀️📋");
+      });
+
+      // --- МОДАЛКА ПАРОЛЯ АДМІНІСТРАТОРА (5641301) ---
+      const adminModal = document.getElementById("modal-admin-password");
+      const adminPassInput = document.getElementById("admin-password-input");
+      const adminPassError = document.getElementById("admin-password-error");
+      const adminPassCard = document.getElementById("admin-password-card");
+
+      document.getElementById("open-admin-modal-btn").addEventListener("click", () => {
+        if (isAdminAuthenticated) {
+          routeActiveView();
+          return;
+        }
+        adminPassInput.value = "";
+        adminPassError.classList.add("hidden");
+        adminModal.classList.remove("hidden");
+        setTimeout(() => adminPassInput.focus(), 50);
+      });
+
+      document.getElementById("close-admin-modal-btn").addEventListener("click", () => {
+        adminModal.classList.add("hidden");
+      });
+
+      document.getElementById("admin-password-form").addEventListener("submit", (e) => {
+        e.preventDefault();
+        if (adminPassInput.value.trim() === ADMIN_PASSWORD) {
+          isAdminAuthenticated = true;
+          adminModal.classList.add("hidden");
+          showToast("Вхід у панель адміністратора виконано 🔐", "success");
+          routeActiveView();
+        } else {
+          adminPassError.classList.remove("hidden");
+          adminPassCard.classList.remove("animate-shake");
+          void adminPassCard.offsetWidth;
+          adminPassCard.classList.add("animate-shake");
+          adminPassInput.select();
+        }
+      });
+
+      // Вихід з адмін-панелі
+      document.getElementById("exit-admin-btn").addEventListener("click", () => {
+        isAdminAuthenticated = false;
+        routeActiveView();
+      });
+
+      // --- УТИЛІТИ АДМІНІСТРАТОРА ---
+      // 1. Перемішати пари заново (зберігаючи існуючих учасників та їхні коди)
+      document.getElementById("admin-reshuffle-btn").addEventListener("click", async () => {
+        if (participants.length < 2) {
+          showToast("Потрібно щонайменше 2 учасники для формування пар.", "error");
+          return;
+        }
+
+        const ok = await openGenericConfirm(
+          "🎲 Перемішати пари заново?",
+          "Усі персональні коди та учасники збережуться, але система заново сформує пари за алгоритмом Саттоло (0 збігів сам із собою) та скине статуси перегляду. Продовжити?"
+        );
+        if (!ok) return;
+
+        const baseRoster = participants.map(({ id, code, role, storeNumber, fullName }) => ({
+          id,
+          code,
+          role,
+          storeNumber,
+          fullName
+        }));
+
+        try {
+          await overwriteRosterWithSattolo(baseRoster, true);
+          if (currentUser) {
+            await deleteDoc(getDeviceLockDocRef(currentUser.uid)).catch(() => {});
+          }
+          lockedSession = null;
+          showToast("Пари успішно перемішано! 0 збігів сам із собою ✅", "success");
+        } catch (err) {
+          console.error(err);
+          showToast("Помилка при перемішуванні пар.", "error");
+        }
+      });
+
+      // 2. Скопіювати всі коди списком
+      document.getElementById("admin-copy-all-codes-btn").addEventListener("click", () => {
+        if (participants.length === 0) {
+          showToast("Список учасників порожній.", "error");
+          return;
+        }
+        const lines = participants.map(
+          (p, i) => `${i + 1}. ${p.fullName} (${formatRoleLabel(p.role, p.storeNumber)}) — ${p.code}`
+        );
+        const header = `🎅 ТАЙНИЙ САНТА • PORTER — Список персональних кодів:\n\n`;
+        copyTextToClipboard(header + lines.join("\n"), "Усі персональні коди скопійовано списком! 📋");
+      });
+
+      // 3. Скинути блокування на цьому пристрої (для тестування адміном)
+      document.getElementById("admin-unlock-device-btn").addEventListener("click", async () => {
+        if (!currentUser) return;
+        try {
+          await deleteDoc(getDeviceLockDocRef(currentUser.uid));
+          lockedSession = null;
+          showToast("Блокування на цьому пристрої скинуто! Можете тестувати коди 🔓", "success");
+        } catch (err) {
+          console.error(err);
+          showToast("Не вдалося скинути блокування пристрою.", "error");
+        }
+      });
+
+      // Вкладки адмінки
+      const tabMasterBtn = document.getElementById("tab-master-btn");
+      const tabAddBtn = document.getElementById("tab-add-btn");
+      const tabMasterView = document.getElementById("admin-tab-master");
+      const tabAddView = document.getElementById("admin-tab-add");
+
+      tabMasterBtn.addEventListener("click", () => {
+        tabMasterBtn.className = "px-4 py-2.5 rounded-xl font-bold text-sm bg-emerald-800 text-white shadow-sm transition-colors cursor-pointer";
+        tabAddBtn.className = "px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors cursor-pointer";
+        tabMasterView.classList.remove("hidden");
+        tabAddView.classList.add("hidden");
+      });
+
+      tabAddBtn.addEventListener("click", () => {
+        tabAddBtn.className = "px-4 py-2.5 rounded-xl font-bold text-sm bg-emerald-800 text-white shadow-sm transition-colors cursor-pointer";
+        tabMasterBtn.className = "px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors cursor-pointer";
+        tabAddView.classList.remove("hidden");
+        tabMasterView.classList.add("hidden");
+      });
+
+      // Пошук і фільтр в адмін-таблиці
+      document.getElementById("admin-search-input").addEventListener("input", renderAdminMasterTable);
+      document.getElementById("admin-status-filter").addEventListener("change", renderAdminMasterTable);
+
+      // Перемикач типу при додаванні одного учасника
+      document.getElementById("add-role-select").addEventListener("change", (e) => {
+        const isMgr = e.target.value === "manager";
+        document.getElementById("add-store-col").classList.toggle("hidden", isMgr);
+        document.getElementById("add-name-col").className = isMgr ? "sm:col-span-7" : "sm:col-span-4";
+        document.getElementById("add-name-label").textContent = isMgr ? "Ім'я та По батькові" : "Прізвище та Ім'я";
+        document.getElementById("add-name-input").placeholder = isMgr ? "Ірина Миколаївна" : "Коваленко Олена";
+      });
+
+      // Додавання одного учасника
+      document.getElementById("single-add-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const role = document.getElementById("add-role-select").value;
+        const storeNumber = role === "store" ? normalizeStoreNumber(document.getElementById("add-store-input").value) : "";
+        const fullName = document.getElementById("add-name-input").value.trim();
+
+        if (!fullName) return;
+        if (role === "store" && !storeNumber) {
+          showToast("Вкажіть номер магазину!", "error");
+          return;
+        }
+
+        const existingCodes = new Set(participants.map((p) => p.code));
+        const newCode = generateUniqueSecretCode(existingCodes);
+
+        const baseRoster = participants.map(({ id, code, role: r, storeNumber: s, fullName: n }) => ({
+          id,
+          code,
+          role: r,
+          storeNumber: s,
+          fullName: n
+        }));
+
+        baseRoster.push({
+          id: `p_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+          code: newCode,
+          role,
+          storeNumber,
+          fullName
+        });
+
+        try {
+          await overwriteRosterWithSattolo(baseRoster, true);
+          document.getElementById("add-name-input").value = "";
+          showToast(`Додано: ${fullName} (Код: ${newCode}). Пари оновлено! 🎄`, "success");
+          tabMasterBtn.click();
+        } catch (err) {
+          console.error(err);
+          showToast("Помилка при додаванні учасника.", "error");
+        }
+      });
+
+      // Масовий імпорт списку
+      document.getElementById("bulk-import-submit-btn").addEventListener("click", async () => {
+        const rawText = document.getElementById("bulk-import-textarea").value.trim();
+        if (!rawText) {
+          showToast("Вставте список учасників у текстове поле.", "error");
+          return;
+        }
+
+        const replaceAll = document.getElementById("bulk-replace-checkbox").checked;
+        const existingRoster = replaceAll
+          ? []
+          : participants.map(({ id, code, role, storeNumber, fullName }) => ({
+              id,
+              code,
+              role,
+              storeNumber,
+              fullName
+            }));
+
+        const usedCodes = new Set(existingRoster.map((p) => p.code));
+        const lines = rawText.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+        const imported = [];
+
+        lines.forEach((line, idx) => {
+          const parts = line.split("|").map((p) => p.trim());
+          if (parts.length >= 2) {
+            const left = parts[0];
+            const name = parts.slice(1).join(" ").trim();
+            if (!name) return;
+
+            const code = generateUniqueSecretCode(usedCodes);
+            if (/менеджер/i.test(left)) {
+              imported.push({
+                id: `p_${Date.now()}_${idx}`,
+                code,
+                role: "manager",
+                storeNumber: "",
+                fullName: name
+              });
+            } else {
+              const storeNum = normalizeStoreNumber(left) || "1";
+              imported.push({
+                id: `p_${Date.now()}_${idx}`,
+                code,
+                role: "store",
+                storeNumber: storeNum,
+                fullName: name
+              });
+            }
+          }
+        });
+
+        if (imported.length === 0) {
+          showToast("Не вдалося розпізнати рядки. Формат: 12 | Коваленко Олена або Менеджер | Ірина Миколаївна", "error");
+          return;
+        }
+
+        const combined = [...existingRoster, ...imported];
+        if (combined.length < 2) {
+          showToast("Для формування пар потрібно щонайменше 2 учасники!", "error");
+          return;
+        }
+
+        try {
+          await overwriteRosterWithSattolo(combined, true);
+          if (currentUser) {
+            await deleteDoc(getDeviceLockDocRef(currentUser.uid)).catch(() => {});
+          }
+          lockedSession = null;
+          document.getElementById("bulk-import-textarea").value = "";
+          showToast(`Імпортовано ${imported.length} учасників, згенеровано коди та пари! 🎅`, "success");
+          tabMasterBtn.click();
+        } catch (err) {
+          console.error(err);
+          showToast("Помилка при масовому імпорті.", "error");
+        }
+      });
+    }
+
+    // =========================================================================
+    // 10. ТОЧКА ВХОДУ ДОДАТКУ
+    // =========================================================================
+    async function bootstrap() {
+      initSnowfall();
+      bindUIEvents();
+
+      if (!firebaseConfig) {
+        showToast("Конфігурація бази даних недоступна.", "error");
+        return;
+      }
+
+      app = initializeApp(firebaseConfig);
+      auth = getAuth(app);
+      db = getFirestore(app);
+
+      // Крок 1: Спочатку обов'язкова автентифікація
+      try {
+        if (typeof __initial_auth_token !== "undefined" && __initial_auth_token) {
+          await signInWithCustomToken(auth, __initial_auth_token);
+        } else {
+          await signInAnonymously(auth);
+        }
+      } catch (authErr) {
+        console.error("Помилка автентифікації:", authErr);
+      }
+
+      onAuthStateChanged(auth, async (user) => {
+        if (!user) return;
+        currentUser = user;
+
+        // Перевіряємо, чи на цьому пристрої вже був активований код раніше
+        lockedSession = await loadDeviceLockFromFirestore();
+        if (lockedSession && lockedSession.receiverName) {
+          routeActiveView();
+        }
+
+        // Запускаємо синхронізацію бази учасників у реальному часі
+        startParticipantsListener();
+      });
+    }
+
+    window.addEventListener("DOMContentLoaded", bootstrap);
+  </script>
+</body>
+</html>
